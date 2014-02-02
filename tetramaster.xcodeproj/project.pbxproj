@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		8DB99017189E5EFE00C2E3C5 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 8DB99016189E5EFE00C2E3C5 /* main.c */; };
 		8DB99019189E5EFE00C2E3C5 /* tetramaster.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8DB99018189E5EFE00C2E3C5 /* tetramaster.1 */; };
+		8DB99020189E5F4600C2E3C5 /* libcurses.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 8DB9901F189E5F4600C2E3C5 /* libcurses.dylib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -28,6 +29,7 @@
 		8DB99013189E5EFE00C2E3C5 /* tetramaster */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = tetramaster; sourceTree = BUILT_PRODUCTS_DIR; };
 		8DB99016189E5EFE00C2E3C5 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		8DB99018189E5EFE00C2E3C5 /* tetramaster.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = tetramaster.1; sourceTree = "<group>"; };
+		8DB9901F189E5F4600C2E3C5 /* libcurses.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcurses.dylib; path = usr/lib/libcurses.dylib; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -35,6 +37,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8DB99020189E5F4600C2E3C5 /* libcurses.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -44,6 +47,7 @@
 		8DB9900A189E5EFC00C2E3C5 = {
 			isa = PBXGroup;
 			children = (
+				8DB9901F189E5F4600C2E3C5 /* libcurses.dylib */,
 				8DB99015189E5EFE00C2E3C5 /* tetramaster */,
 				8DB99014189E5EFE00C2E3C5 /* Products */,
 			);
