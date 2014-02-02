@@ -22,17 +22,17 @@ int init_drawing()
     init_pair(4, COLOR_WHITE,COLOR_BLACK);
     return 0;
 }
-int draw_table()
+int draw_table(int x,int y)
 {
     attron(COLOR_PAIR(3));
-    move(winy,winx);
+    move(y,x);
     int i,j;
     for (i=0;i<41;i++)
     {
         for(j=0;j<27;j++)
         {
             addch('+');
-            move(winy+j,winx+i);
+            move(y+j,x+i);
         }
     }
     addch('+');
@@ -40,7 +40,7 @@ int draw_table()
     {
         for(j=0;j<4;j++)
         {
-            draw_cursor_a(i,j);
+            draw_cursor_a(x+1+10*i,y+1+6*j);
         }
     }
     attroff(COLOR_PAIR(3));
@@ -51,14 +51,14 @@ int draw_cursor_a(int x, int y)
 {
     attron(COLOR_PAIR(3));
     int i=0;
-    move(winy+1+6*y,winx+1+10*x);
+    move(y,x);
     addstr("+-------+");
     for(i=0;i<5;i++)
     {
-        move(winy+2+i+6*y,1+winx+10*x);
+        move(1+y+i,x);
         addstr("|       |");
     }
-    move(winy+7+6*y,winx+1+10*x);
+    move(6+y,x);
     addstr("+-------+");
     move(0,0);
     attroff(COLOR_PAIR(3));
@@ -69,14 +69,14 @@ int draw_cursor_b(int x, int y)
 {
     attron(COLOR_PAIR(4));
     int i=0;
-    move(winy+1+6*y,winx+1+10*x);
+    move(y,x);
     addstr("+-------+");
     for(i=0;i<5;i++)
     {
-        move(winy+2+i+6*y,1+winx+10*x);
+        move(1+i+y,x);
         addstr("|       |");
     }
-    move(winy+7+6*y,winx+1+10*x);
+    move(6+y,x);
     addstr("+-------+");
     move(0,0);
     attroff(COLOR_PAIR(4));
@@ -154,8 +154,8 @@ int draw_card(struct card_t *card,int x, int y)
 int redraw(struct state_t *state)
 {
     clear();
-    draw_table();
-    draw_cursor_b(state->x, state->y);
+    draw_table(winx,winy);
+    draw_cursor_b(winx+1+10*state->x,winy+1+6*state->y);
     int i,j;
     for (i=0;i<4;i++)
     {
@@ -163,18 +163,18 @@ int redraw(struct state_t *state)
         {
             if(state->table[i][j]>1)
             {
-                draw_card(&state->cards1[state->table[i][j]-2],winx+2+10*i,winy+2+6*j);
+                draw_card(&state->cards[0][state->table[i][j]-2],winx+2+10*i,winy+2+6*j);
             }
             if(state->table[i][j]>6)
             {
-                draw_card(&state->cards2[state->table[i][j]-7],winx+2+10*i,winy+2+6*j);
+                draw_card(&state->cards[1][state->table[i][j]-7],winx+2+10*i,winy+2+6*j);
             }
         }
     }
     for (i=0;i<5;i++)
     {
-        if(state->cards1[i].played==0) {draw_card(&state->cards1[i],winx+44,winy+6*i);}
-        if(state->cards2[i].played==0) {draw_card(&state->cards2[i],winx-12,winy+6*i);}
+        if(state->cards[0][i].played==0) {draw_card(&state->cards[0][i],winx+44,winy+6*i);}
+        if(state->cards[1][i].played==0) {draw_card(&state->cards[1][i],winx-12,winy+6*i);}
     }
     refresh();
     return 0;

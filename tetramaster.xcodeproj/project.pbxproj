@@ -28,7 +28,7 @@
 
 /* Begin PBXFileReference section */
 		8DB99013189E5EFE00C2E3C5 /* tetramaster */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = tetramaster; sourceTree = BUILT_PRODUCTS_DIR; };
-		8DB99016189E5EFE00C2E3C5 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
+		8DB99016189E5EFE00C2E3C5 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; usesTabs = 1; };
 		8DB99018189E5EFE00C2E3C5 /* tetramaster.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = tetramaster.1; sourceTree = "<group>"; };
 		8DB9901F189E5F4600C2E3C5 /* libcurses.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcurses.dylib; path = usr/lib/libcurses.dylib; sourceTree = SDKROOT; };
 		8DB99021189E744200C2E3C5 /* main.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = main.h; sourceTree = "<group>"; };

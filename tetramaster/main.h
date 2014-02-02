@@ -25,14 +25,14 @@ struct card_t {
 
 struct state_t {
     int x,y;
-    struct card_t cards1[5];
-    struct card_t cards2[5];
+    struct card_t cards[2][5];
     int table[4][4];
 };
 int manage(struct state_t *state);
+int insertcard(struct state_t *state, int eq, int num);
 
 int init_drawing();
-int draw_table();
+int draw_table(int x,int y);
 int draw_card(struct card_t *card,int x,int y);
 int draw_cursor_a(int x, int y);
 int draw_cursor_b(int x, int y);
