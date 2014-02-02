@@ -16,8 +16,8 @@ int init_drawing()
     (void)noecho();
     start_color();
     
-    init_pair(1, COLOR_WHITE, COLOR_RED);
-    init_pair(2, COLOR_WHITE, COLOR_BLUE);
+    init_pair(2, COLOR_WHITE, COLOR_RED);
+    init_pair(1, COLOR_WHITE, COLOR_BLUE);
     init_pair(3, COLOR_BLACK,COLOR_WHITE);
     init_pair(4, COLOR_WHITE,COLOR_BLACK);
     return 0;
@@ -91,14 +91,14 @@ int draw_card(struct card_t *card,int x, int y)
     {
         for(j=0;j<5;j++)
         {
-            move(winy+2+6*y+j,winx+2+10*x+i);
+            move(y+j,x+i);
             addch(' ');
         }
     }
     
-    move(winy+5+6*y,winx+2+10*x);
+    move(3+y,x);
     printw(" %X  %X%X",card->stats[0],card->type,card->stats[1],card->stats[2]);
-    move(winy+5+6*y,winx+4+10*x);
+    move(3+y,2+x);
     switch (card->type)
     {
         case 0: addch('P'); break;
@@ -106,42 +106,42 @@ int draw_card(struct card_t *card,int x, int y)
         case 2: addch('X'); break;
         case 3: addch('A'); break;
     }
-    move(winy+2+6*y,winx+2+10*x);
+    move(y,x);
     if (card->arrows&128)
     {
         addch('\\');
     }
-    move(winy+2+6*y,winx+5+10*x);
+    move(y,3+x);
     if (card->arrows&64)
     {
         addch('|');
     }
-    move(winy+2+6*y,winx+8+10*x);
+    move(y,6+x);
     if (card->arrows&32)
     {
         addch('/');
     }
-    move(winy+4+6*y,winx+2+10*x);
+    move(2+y,x);
     if (card->arrows&16)
     {
         addch('-');
     }
-    move(winy+4+6*y,winx+8+10*x);
+    move(2+y,6+x);
     if (card->arrows&8)
     {
         addch('-');
     }
-    move(winy+6+6*y,winx+2+10*x);
+    move(4+y,x);
     if (card->arrows&4)
     {
         addch('/');
     }
-    move(winy+6+6*y,winx+5+10*x);
+    move(4+y,3+x);
     if (card->arrows&2)
     {
         addch('|');
     }
-    move(winy+6+6*y,winx+8+10*x);
+    move(4+y,6+x);
     if (card->arrows&1)
     {
         addch('\\');
@@ -163,9 +163,14 @@ int redraw(struct state_t *state)
         {
             if(state->table[i][j]>1)
             {
-                draw_card(&state->cards1[state->table[i][j]-2], i, j);
+                draw_card(&state->cards1[state->table[i][j]-2],winx+2+10*i,winy+2+6*j);
             }
         }
+    }
+    for (i=0;i<5;i++)
+    {
+        draw_card(&state->cards1[i],winx+44,winy+6*i);
+        draw_card(&state->cards2[i],winx-12,winy+6*i);
     }
     refresh();
     return 0;

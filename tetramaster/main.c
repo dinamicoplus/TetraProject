@@ -29,7 +29,16 @@ int main()
         state.cards1[i].stats[1]=rand()%16;
         state.cards1[i].stats[2]=rand()%16;
         state.cards1[i].type=rand()%4;
-        state.cards1[i].eq=rand()%2+1;
+        state.cards1[i].eq=1;
+    }
+    for (i=0;i<5;i++)
+    {
+        state.cards2[i].arrows=rand()%256;
+        state.cards2[i].stats[0]=rand()%16;
+        state.cards2[i].stats[1]=rand()%16;
+        state.cards2[i].stats[2]=rand()%16;
+        state.cards2[i].type=rand()%4;
+        state.cards2[i].eq=2;
     }
     redraw(&state);
     manage(&state);
@@ -39,7 +48,7 @@ int main()
 int manage(struct state_t *state)
 {
     int key = getch();
-    int i=0;
+    int i=0,j=0;
     while(key!=0x1B)
     {
         if(key == KEY_RIGHT)
@@ -63,7 +72,13 @@ int manage(struct state_t *state)
             state->table[state->x][state->y]=i+2; //dos estados para vacios
             i=(i+1)%5;  //cinco cartas
         }
+        if(key == 0x63)
+        {
+            state->table[state->x][state->y]=j+7; //dos estados para vacios
+            j=(j+1)%5;  //cinco cartas
+        }
         redraw(state);
+        //printw("%X",key);
         key = getch();
     }
     return 0;
