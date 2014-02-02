@@ -23,13 +23,14 @@ struct state_t {
     struct card_t cards2[5];
     int table[4][4];
 };
+int manage(struct state_t *state);
+
 int init_drawing();
 int draw_table();
 int draw_card(struct card_t *card,int x,int y);
 int draw_cursor_a(int x, int y);
 int draw_cursor_b(int x, int y);
-int move_cursor(struct state_t *state, int x, int y);
-int manage(struct state_t *state);
+int redraw(struct state_t *state);
 int winx=0, winy=0;
 
 int main()
@@ -58,12 +59,7 @@ int main()
         state.cards1[i].type=rand()%4;
         state.cards1[i].eq=rand()%2+1;
     }
-    
-    
-    draw_table();
-    
-    move(0,0);
-    draw_cursor_b(state.x,state.y);
+    redraw(&state);
     manage(&state);
     endwin();
     return 0;
@@ -74,51 +70,29 @@ int manage(struct state_t *state)
     int i=0;
     while(key!=0x1B)
     {
-        
         if(key == KEY_RIGHT)
         {
-            move_cursor(state,(state->x+1)%4,state->y);
             state->x=(state->x+1)%4;
         }
         if(key == KEY_LEFT)
         {
-            move_cursor(state,(state->x+7)%4,state->y);
             state->x=(state->x+7)%4;
         }
         if(key == KEY_UP)
         {
-            move_cursor(state,state->x,(state->y+7)%4);
             state->y=(state->y+7)%4;
         }
         if(key == KEY_DOWN)
         {
-            move_cursor(state,state->x,(state->y+1)%4);
             state->y=(state->y+1)%4;
         }
         if(key == 0x0A)
         {
-            draw_card(&(state->cards1[i]),state->x,state->y);
             state->table[state->x][state->y]=i+2; //dos estados para vacios
             i=(i+1)%5;  //cinco cartas
         }
+        redraw(state);
         key = getch();
-    }
-    refresh();
-    return 0;
-}
-int move_cursor(struct state_t *state, int x, int y)
-{
-    int x_=state->x;
-    int y_=state->y;
-    draw_cursor_a(x_,y_);
-    draw_cursor_b(x,y);
-    if(state->table[x_][y_]>1)
-    {
-        draw_card(&(state->cards1[state->table[x_][y_]-2]),x_,y_);
-    }
-    if(state->table[x][y]>1)
-    {
-        draw_card(&(state->cards1[state->table[x][y]-2]),x,y);
     }
     return 0;
 }
@@ -263,6 +237,25 @@ int draw_card(struct card_t *card,int x, int y)
     }
     move(0,0);
     attroff(COLOR_PAIR(card->eq));
+    refresh();
+    return 0;
+}
+int redraw(struct state_t *state)
+{
+    clear();
+    draw_table();
+    draw_cursor_b(state->x, state->y);
+    int i,j;
+    for (i=0;i<4;i++)
+    {
+        for(j=0;j<4;j++)
+        {
+            if(state->table[i][j]>1)
+            {
+                draw_card(&state->cards1[state->table[i][j]-2], i, j);
+            }
+        }
+    }
     refresh();
     return 0;
 }
