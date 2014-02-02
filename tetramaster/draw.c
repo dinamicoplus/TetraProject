@@ -165,12 +165,16 @@ int redraw(struct state_t *state)
             {
                 draw_card(&state->cards1[state->table[i][j]-2],winx+2+10*i,winy+2+6*j);
             }
+            if(state->table[i][j]>6)
+            {
+                draw_card(&state->cards2[state->table[i][j]-7],winx+2+10*i,winy+2+6*j);
+            }
         }
     }
     for (i=0;i<5;i++)
     {
-        draw_card(&state->cards1[i],winx+44,winy+6*i);
-        draw_card(&state->cards2[i],winx-12,winy+6*i);
+        if(state->cards1[i].played==0) {draw_card(&state->cards1[i],winx+44,winy+6*i);}
+        if(state->cards2[i].played==0) {draw_card(&state->cards2[i],winx-12,winy+6*i);}
     }
     refresh();
     return 0;

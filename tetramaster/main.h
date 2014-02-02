@@ -20,6 +20,7 @@ struct card_t {
     enum {P,M,X,A} type;
     int arrows;
     int eq;
+    int played;
 };
 
 struct state_t {
