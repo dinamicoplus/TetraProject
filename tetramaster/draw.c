@@ -179,3 +179,8 @@ int redraw(struct state_t *state)
     refresh();
     return 0;
 }
+int end_drawing()
+{
+    endwin();
+    return 0;
+}
