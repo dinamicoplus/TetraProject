@@ -33,7 +33,9 @@ int manage(struct state_t *state);
 int insertcard(struct state_t *state, int eq, int num);
 int itojk(int i, int *j, int *k);
 int itojkxy(int i, int *j, int *k, int x, int y);
+int tbtocard (struct state_t *state, int *eq, int *num, int x, int y);
 int game(struct state_t *state, int x, int y);
+int battle(struct state_t *state,int eq,int num,int eq_en,int num_en);
 
 int init_drawing();
 int draw_table(int x,int y);

@@ -18,6 +18,7 @@ int main()
 	end_drawing();
     return 0;
 }
+
 int initgame(struct state_t *state)
 {
 	state->x=0;
@@ -88,9 +89,9 @@ int itojk(int i, int *j, int *k)
 	*j = 1 - (i+i/4)%3; //x
 	*k = -((i+i/5)/3-1); //y
 	
-	var_heces[i][0] = *j;
-	var_heces[i][1] = *k;
-	return 0;
+	//var_heces[i][0] = *j;
+	//var_heces[i][1] = *k;
+	return 1;
 }
 
 int itojkxy(int i, int *j, int *k,int x, int y)
@@ -98,8 +99,8 @@ int itojkxy(int i, int *j, int *k,int x, int y)
 	*j = 1 - (i+i/4)%3; //x
 	*k = -((i+i/5)/3-1); //y
 	
-	var_heces[i][0] = *j;
-	var_heces[i][1] = *k;
+	//var_heces[i][0] = *j;
+	//var_heces[i][1] = *k;
 	
 	if((y+*k)>=0 & (x+*j)>=0 & (y+*k)<4 & (x+*j)<4)
 	{
@@ -107,18 +108,46 @@ int itojkxy(int i, int *j, int *k,int x, int y)
 	}
 	return 0;
 }
+int tbtocard (struct state_t *state, int *eq, int *num, int x, int y)
+{
+	*eq = (state->table[x][y]-2)/5;
+	*num = (state->table[x][y]-2)%5;
+	return 0;
+}
 
 int game(struct state_t *state,int x,int y)
 {
-	int eq = (state->table[x][y]-2)/5;
-	int num = (state->table[x][y]-2)%5;
+	int eq,num;
+	tbtocard (state, &eq, &num, x, y);
 	int i,j,k;
 	for(i=0;i<8;i++)
 	{
+		var_heces[i][0]=0;
+		var_heces[i][1]=0;
 		if(((state->cards[eq][num].arrows&1<<i)>>i) & itojkxy(i, &j, &k, x, y))
 		{
-			state->table[x+j][y+k]=10;
+			if (state->table[x+j][y+k]>1) //La pongo aquí no vaya a ser que vaya a intentar evaluarla para valores mas grandes de 4 o mas chicos que 0
+			{
+				int eq_en, num_en, l, m, n;
+				tbtocard(state, &eq_en, &num_en, x+j, y+k);
+				for(l=0;l<8;l++)
+				{
+					itojk(l,&m,&n);
+					if(((state->cards[eq_en][num_en].arrows&1<<l)>>l) & itojk(l, &m, &n))
+					{
+						if(j+m==k+n)
+						{
+							var_heces[i][0]=x+j;
+							var_heces[i][1]=y+k;
+						}
+					}
+				}
+			}
 		}
 	}
 	return 0;
+}
+int battle(struct state_t *state,int eq,int num,int eq_en,int num_en)
+{
+	return 0xF;
 }
