@@ -85,7 +85,7 @@ int draw_cursor_b(int x, int y)
 }
 int draw_card(struct card_t *card,int x, int y)
 {
-    attron(COLOR_PAIR(card->eq));
+    attron(COLOR_PAIR(card->eq+1));
     int i,j;
     for(i=0;i<7;i++)
     {
@@ -97,7 +97,7 @@ int draw_card(struct card_t *card,int x, int y)
     }
     
     move(3+y,x);
-    printw(" %X  %X%X",card->stats[0],card->type,card->stats[1],card->stats[2]);
+    printw(" %X  %X%X",card->stats[0],card->stats[1],card->stats[2]);
     move(3+y,2+x);
     switch (card->type)
     {
@@ -147,7 +147,7 @@ int draw_card(struct card_t *card,int x, int y)
         addch('\\');
     }
     move(0,0);
-    attroff(COLOR_PAIR(card->eq));
+    attroff(COLOR_PAIR(card->eq+1));
     refresh();
     return 0;
 }
