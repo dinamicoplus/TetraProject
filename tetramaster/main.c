@@ -40,7 +40,7 @@ int initgame(struct state_t *state)
 			state->cards[j][i].stats[1]=rand()%16;
 			state->cards[j][i].stats[2]=rand()%16;
 			state->cards[j][i].type=rand()%4;
-			state->cards[j][i].eq=j+1;
+			state->cards[j][i].eq=j;
 			state->cards[j][i].played=0;
 		}
     }
@@ -49,7 +49,7 @@ int initgame(struct state_t *state)
 int manage(struct state_t *state)
 {
     int key = getch();
-    int i=0,j=0;
+    int i=0;
     while(key!=0x1B)
     {
 		switch (key) {
@@ -58,16 +58,16 @@ int manage(struct state_t *state)
 			case KEY_DOWN: state->y=(state->y+1)%4; break;
 			case KEY_UP: state->y=(state->y+3)%4; break;
 			case KEY_V: i=(i+1)%10; break;
-			case KEY_C: if(insertcard(state, i/5, i%5)) game(state,state->x,state->y); break;
+			case KEY_C: if(insertcard(state, i/5, i%5)) {redraw(state); game(state,state->x,state->y);} break;
 		}
 		redraw(state);
 		move(30,10);
 		printw("Carta: %d, %d\n", i/5, i%5);
-		printw("Presiona C para insertar carta\n");
-		for(j=0;j<8;j++)
+		printw("Presiona C para insertar carta, V para cambiar de carta\n");
+		/*for(j=0;j<8;j++)
 		{
-			printw("x:%d, y:%d\n",var_heces[j][0],var_heces[j][1]);
-		}
+			printw("x:%X, y:%X\n",var_heces[j][0],var_heces[j][1]);
+		}*/
 		key = getch();
 		
     }
@@ -88,9 +88,7 @@ int itojk(int i, int *j, int *k)
 {
 	*j = 1 - (i+i/4)%3; //x
 	*k = -((i+i/5)/3-1); //y
-	
-	//var_heces[i][0] = *j;
-	//var_heces[i][1] = *k;
+
 	return 1;
 }
 
@@ -98,9 +96,6 @@ int itojkxy(int i, int *j, int *k,int x, int y)
 {
 	*j = 1 - (i+i/4)%3; //x
 	*k = -((i+i/5)/3-1); //y
-	
-	//var_heces[i][0] = *j;
-	//var_heces[i][1] = *k;
 	
 	if((y+*k)>=0 & (x+*j)>=0 & (y+*k)<4 & (x+*j)<4)
 	{
@@ -132,13 +127,25 @@ int game(struct state_t *state,int x,int y)
 				tbtocard(state, &eq_en, &num_en, x+j, y+k);
 				for(l=0;l<8;l++)
 				{
-					itojk(l,&m,&n);
 					if(((state->cards[eq_en][num_en].arrows&1<<l)>>l) & itojk(l, &m, &n))
 					{
-						if(j+m==k+n)
+						if(j+m==0 & k+n==0)
 						{
-							var_heces[i][0]=x+j;
-							var_heces[i][1]=y+k;
+							redraw(state);
+							draw_arrows(i, winx+2+10*x, winy+2+6*y);
+							int resul=battle(state, eq, num, eq_en, num_en);
+							move(21,10);
+							
+							if (resul==1) {
+								printw("Has ganaaaaooo!!! ");
+							}
+							else if (resul==0) {
+								printw("Has perdido... ");
+							}
+							else if (resul==-1) {
+								printw("¡Error! ");
+							}
+							getch();
 						}
 					}
 				}
@@ -149,5 +156,54 @@ int game(struct state_t *state,int x,int y)
 }
 int battle(struct state_t *state,int eq,int num,int eq_en,int num_en)
 {
-	return 0xF;
+	struct card_t att,def;
+	att=state->cards[eq][num];
+	def=state->cards[eq_en][num_en];
+	/*move(20,0);
+	printw("Param: %X %X %X %X",att.stats[0],att.type,att.stats[1],att.stats[2]);
+	move(21,0);
+	printw("Param: %X %X %X %X",def.stats[0],def.type,def.stats[1],def.stats[2]);*/
+	move(20,10);
+	switch (att.type) {
+		case P:
+			if (att.stats[0]>def.stats[1]) {
+				printw("Battalla fisica: %X es mayor que %X",att.stats[0],def.stats[1]);
+				return 1;
+			}
+			else printw("Batalla fisica: %X es menor que %X",att.stats[0],def.stats[1]);
+			break;
+		case M:
+			if (att.stats[0]>def.stats[2]) {
+				printw("Batalla magica: %X es mayor que %X",att.stats[0],def.stats[2]);
+				return 1;
+			}
+			else printw("Batalla magica: %X es menor que %X",att.stats[0],def.stats[2]);
+			break;
+		case X:
+			if (att.stats[0]>min(def.stats[1], def.stats[2])) {
+				printw("Batalla X: %X es mayor que %X",att.stats[0],min(def.stats[1], def.stats[2]));
+				return 1;
+			}
+			else printw("Batalla X: %X es menor que %X",att.stats[0],min(def.stats[1], def.stats[2]));
+			break;
+		case A:
+			if (att.stats[0]>min(min(def.stats[0], def.stats[1]), def.stats[2])) {
+				printw("Batalla Alfa: %X es mayor que %X",att.stats[0], min(min(def.stats[0],def.stats[1]),def.stats[2]));
+				return 1;
+			}
+			else printw("Batalla Alfa: %X es menor que %X",att.stats[0], min(min(def.stats[0],def.stats[1]),def.stats[2]));
+			break;
+		default:
+			return -1;
+			break;
+	}
+	return 0;
+}
+int min(int a, int b)
+{
+	if (a>b)
+	{
+		return b;
+	}
+	return a;
 }

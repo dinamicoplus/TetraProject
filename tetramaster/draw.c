@@ -20,6 +20,7 @@ int init_drawing()
     init_pair(1, COLOR_WHITE, COLOR_BLUE);
     init_pair(3, COLOR_BLACK,COLOR_WHITE);
     init_pair(4, COLOR_WHITE,COLOR_BLACK);
+    init_pair(5, COLOR_RED, COLOR_CYAN);
     return 0;
 }
 int draw_table(int x,int y)
@@ -148,6 +149,20 @@ int draw_card(struct card_t *card,int x, int y)
     }
     move(0,0);
     attroff(COLOR_PAIR(card->eq+1));
+    refresh();
+    return 0;
+}
+
+int draw_arrows(int i,int x, int y)
+{
+    char arrows[]="\\|/--/|\\";
+    int j=(((6*(7-i)/5)/3)*2);
+    int k=(((5*(7-i)/4)%3)*3);
+    attron(COLOR_PAIR(5));
+    move(j+y,k+x);
+    addch(arrows[i]);
+    move(0,0);
+    attroff(COLOR_PAIR(5));
     refresh();
     return 0;
 }

@@ -14,10 +14,10 @@
 #include <time.h>
 #include <curses.h>
 
-
+enum type_t {P,M,X,A};
 struct card_t {
     int stats[3];
-    enum {P,M,X,A} type;
+    enum type_t type;
     int arrows;
     int eq;
     int played;
@@ -36,12 +36,14 @@ int itojkxy(int i, int *j, int *k, int x, int y);
 int tbtocard (struct state_t *state, int *eq, int *num, int x, int y);
 int game(struct state_t *state, int x, int y);
 int battle(struct state_t *state,int eq,int num,int eq_en,int num_en);
+int min(int a, int b);
 
 int init_drawing();
 int draw_table(int x,int y);
 int draw_card(struct card_t *card,int x,int y);
 int draw_cursor_a(int x, int y);
 int draw_cursor_b(int x, int y);
+int draw_arrows(int i,int x, int y);
 int redraw(struct state_t *state);
 int end_drawing();
 int winx, winy;
