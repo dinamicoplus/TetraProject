@@ -35,7 +35,7 @@ int initgame(struct state_t *state)
     {
 		for(j=0;j<2;j++)
 		{
-			state->cards[j][i].arrows=255;
+			state->cards[j][i].arrows=rand()%256;
 			state->cards[j][i].stats[0]=rand()%16;
 			state->cards[j][i].stats[1]=rand()%16;
 			state->cards[j][i].stats[2]=rand()%16;
@@ -64,10 +64,6 @@ int manage(struct state_t *state)
 		move(30,10);
 		printw("Carta: %d, %d\n", i/5, i%5);
 		printw("Presiona C para insertar carta, V para cambiar de carta\n");
-		/*for(j=0;j<8;j++)
-		{
-			printw("x:%X, y:%X\n",var_heces[j][0],var_heces[j][1]);
-		}*/
 		key = getch();
 		
     }
@@ -115,38 +111,55 @@ int game(struct state_t *state,int x,int y)
 	int eq,num;
 	tbtocard (state, &eq, &num, x, y);
 	int i,j,k;
-	for(i=0;i<8;i++)
+	for(i=0;i<8;i++) // Comprueba si hay cartas enemigas a su alrededor
 	{
-		var_heces[i][0]=0;
-		var_heces[i][1]=0;
-		if(((state->cards[eq][num].arrows&1<<i)>>i) & itojkxy(i, &j, &k, x, y))
+		if(((state->cards[eq][num].arrows&1<<i)>>i) & itojkxy(i, &j, &k, x, y)) //Comprueba cada flecha que tiene la carta y si la casilla adyacente es una casilla jugable
 		{
-			if (state->table[x+j][y+k]>1) //La pongo aquí no vaya a ser que vaya a intentar evaluarla para valores mas grandes de 4 o mas chicos que 0
+			if (state->table[x+j][y+k]>1) //La pongo aquí no vaya a ser que vaya a intentar evaluarla para valores mas grandes de 4 o mas chicos que 0. Comprueba que en la posición adyacente hay una carta.
 			{
 				int eq_en, num_en, l, m, n;
+				int a=0;
 				tbtocard(state, &eq_en, &num_en, x+j, y+k);
-				for(l=0;l<8;l++)
+				
+				/*move(20,0);
+				printw("Param: %X %X %X %X, EQ:%X",state->cards[eq][num].stats[0],state->cards[eq][num].type,state->cards[eq][num].stats[1],state->cards[eq][num].stats[2],state->cards[eq][num].eq);
+				move(21,0);
+				printw("Param: %X %X %X %X, EQ:%X",state->cards[eq_en][num_en].stats[0],state->cards[eq_en][num_en].type,state->cards[eq_en][num_en].stats[1],state->cards[eq_en][num_en].stats[2],state->cards[eq_en][num_en].eq);
+				getch();*/
+				
+				if (state->cards[eq][num].eq!=state->cards[eq_en][num_en].eq) //Continua evaluando si son de diferentes equipos
 				{
-					if(((state->cards[eq_en][num_en].arrows&1<<l)>>l) & itojk(l, &m, &n))
+					for(l=0;l<8;l++) //comprueba si hay flechas que apunten de la defensora a la carta de ataque
 					{
-						if(j+m==0 & k+n==0)
+						if(((state->cards[eq_en][num_en].arrows&1<<l)>>l) & itojk(l, &m, &n)) //Va comprobando que tiene cada flecha (itoxy es siempre	1)
 						{
-							redraw(state);
-							draw_arrows(i, winx+2+10*x, winy+2+6*y);
-							int resul=battle(state, eq, num, eq_en, num_en);
-							move(21,10);
-							
-							if (resul==1) {
-								printw("Has ganaaaaooo!!! ");
+							if(j+m==0 & k+n==0)	//Comprueba si las flechas son opuestas y coincidentes
+							{
+								a++;
+								redraw(state);
+								draw_arrows(i, winx+2+10*x, winy+2+6*y);
+								int resul=battle(state, eq, num, eq_en, num_en);
+								move(21,10);
+								
+								if (resul==1) {		//Puede que haya que hacer una función aparte para ganar o perder
+									state->cards[eq_en][num_en].eq=state->cards[eq][num].eq;
+									printw("Has ganaaaaooo!!! ");
+								}
+								else if (resul==0) {
+									state->cards[eq][num].eq=state->cards[eq_en][num_en].eq;
+									printw("Has perdido... ");
+								}
+								else if (resul==-1) {
+									printw("¡Error! ");
+								}
+								getch();
 							}
-							else if (resul==0) {
-								printw("Has perdido... ");
-							}
-							else if (resul==-1) {
-								printw("¡Error! ");
-							}
-							getch();
 						}
+					}
+					if (a==0) {	//En caso de no tener flechas con las que defenderse, la carta se gana automáticamente.
+						state->cards[eq_en][num_en].eq=state->cards[eq][num].eq;
+						printw("Has ganaaaaooo!!! ");
+						getch();
 					}
 				}
 			}
@@ -199,6 +212,7 @@ int battle(struct state_t *state,int eq,int num,int eq_en,int num_en)
 	}
 	return 0;
 }
+
 int min(int a, int b)
 {
 	if (a>b)

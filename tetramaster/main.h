@@ -47,7 +47,6 @@ int draw_arrows(int i,int x, int y);
 int redraw(struct state_t *state);
 int end_drawing();
 int winx, winy;
-int var_heces[8][2];
 
 #define KEY_V 0x76
 #define KEY_C 0x63
