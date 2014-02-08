@@ -31,8 +31,8 @@
 		8DB99016189E5EFE00C2E3C5 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; usesTabs = 1; wrapsLines = 1; };
 		8DB99018189E5EFE00C2E3C5 /* tetramaster.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = tetramaster.1; sourceTree = "<group>"; };
 		8DB9901F189E5F4600C2E3C5 /* libcurses.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcurses.dylib; path = usr/lib/libcurses.dylib; sourceTree = SDKROOT; };
-		8DB99021189E744200C2E3C5 /* main.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = main.h; sourceTree = "<group>"; };
-		8DB99022189E759300C2E3C5 /* draw.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = draw.c; sourceTree = "<group>"; };
+		8DB99021189E744200C2E3C5 /* main.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = main.h; sourceTree = "<group>"; usesTabs = 1; };
+		8DB99022189E759300C2E3C5 /* draw.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = draw.c; sourceTree = "<group>"; usesTabs = 1; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */

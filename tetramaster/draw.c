@@ -103,50 +103,16 @@ int draw_card(struct card_t *card,int x, int y)
     move(3+y,2+x);
     switch (card->type)
     {
-        case 0: addch('P'); break;
-        case 1: addch('M'); break;
-        case 2: addch('X'); break;
-        case 3: addch('A'); break;
+        case P: addch('P'); break;
+        case M: addch('M'); break;
+        case X: addch('X'); break;
+        case A: addch('A'); break;
     }
-    move(y,x);
-    if (card->arrows&128)
-    {
-        addch('\\');
-    }
-    move(y,3+x);
-    if (card->arrows&64)
-    {
-        addch('|');
-    }
-    move(y,6+x);
-    if (card->arrows&32)
-    {
-        addch('/');
-    }
-    move(2+y,x);
-    if (card->arrows&16)
-    {
-        addch('-');
-    }
-    move(2+y,6+x);
-    if (card->arrows&8)
-    {
-        addch('-');
-    }
-    move(4+y,x);
-    if (card->arrows&4)
-    {
-        addch('/');
-    }
-    move(4+y,3+x);
-    if (card->arrows&2)
-    {
-        addch('|');
-    }
-    move(4+y,6+x);
-    if (card->arrows&1)
-    {
-        addch('\\');
+    for (i=0; i<8; i++) {
+		if(card->arrows&(1<<i))
+		{
+			draw_arrows(i, x, y, card->eq+1);
+		}
     }
     move(0,0);
     attroff(COLOR_PAIR(card->eq+1));
@@ -154,47 +120,82 @@ int draw_card(struct card_t *card,int x, int y)
     return 0;
 }
 
-int draw_arrows(int i,int x, int y)
+int draw_arrows(int i,int x, int y, int color)
 {
     char arrows[]="\\|/--/|\\";
     int j=(((6*(7-i)/5)/3)*2);
     int k=(((5*(7-i)/4)%3)*3);
-    attron(COLOR_PAIR(5));
+    attron(COLOR_PAIR(color));
     move(j+y,k+x);
     addch(arrows[i]);
     move(0,0);
-    attroff(COLOR_PAIR(5));
+    attroff(COLOR_PAIR(color));
     refresh();
     return 0;
 }
 int redraw(struct state_t *state)
 {
-    clear();
-    draw_table(winx,winy);
-    draw_cursor_b(winx+1+10*state->x,winy+1+6*state->y,4);
-    draw_cursor_b(winx+44-(44+12)*(state->selection/5)-1,winy+6*(state->selection%5)-1,6);
-    int i,j;
-    for (i=0;i<4;i++)
-    {
-        for(j=0;j<4;j++)
-        {
-            if(state->table[i][j]>1)
-            {
-                draw_card(&state->cards[0][state->table[i][j]-2],winx+2+10*i,winy+2+6*j);
-            }
-            if(state->table[i][j]>6)
-            {
-                draw_card(&state->cards[1][state->table[i][j]-7],winx+2+10*i,winy+2+6*j);
-            }
-        }
-    }
-    for (i=0;i<5;i++)
-    {
-        if(state->cards[0][i].played==0) {draw_card(&state->cards[0][i],winx+44,winy+6*i);}
-        if(state->cards[1][i].played==0) {draw_card(&state->cards[1][i],winx-12,winy+6*i);}
-    }
-    refresh();
-    return 0;
+	
+	if (state->phase==SELECTION)
+	{
+		clear();
+		draw_table(winx,winy);
+		draw_cursor_b(winx+1+10*state->x,winy+1+6*state->y,4);
+		draw_cursor_b(winx+44-(44+12)*(state->selection/5)-1,winy+6*(state->selection%5)-1,6);
+		int i,j;
+		for (i=0;i<4;i++)
+		{
+			for(j=0;j<4;j++)
+			{
+				if(state->table[i][j]>1)
+				{
+					draw_card(&state->cards[0][state->table[i][j]-2],winx+2+10*i,winy+2+6*j);
+				}
+				if(state->table[i][j]>6)
+				{
+					draw_card(&state->cards[1][state->table[i][j]-7],winx+2+10*i,winy+2+6*j);
+				}
+			}
+		}
+		for (i=0;i<5;i++)
+		{
+			if(state->cards[0][i].played==0) {draw_card(&state->cards[0][i],winx+44,winy+6*i);}
+			if(state->cards[1][i].played==0) {draw_card(&state->cards[1][i],winx-12,winy+6*i);}
+		}
+	}
+	if (state->phase==BATTLE)
+	{
+		draw_arrows(state->game.a_arr, winx+2+10*state->game.x, winy+2+6*state->game.y, 5);
+		move(20,10);
+		printw("Batalla ");
+		switch (state->battle.cards[0].type) {
+			case P:
+				printw("física: ");
+				break;
+			case M:
+				printw("mágica: ");
+				break;
+			case X:
+				printw("X: ");
+				break;
+			case A:
+				printw("Alfa: ");
+				break;
+			default:
+				break;
+		}
+		printw("%X ",state->battle.param_att);
+		if (state->battle.resul==1) {
+			printw("es mayor que ");
+		} else {
+			printw("es menor que ");
+		}
+		printw("%X",state->battle.param_def);
+		getch();
+		draw_card(&state->cards[0][state->table[state->game.x][state->game.y]-2],winx+2+10*state->game.x, winy+2+6*state->game.y);
+	}
+	refresh();
+	return 0;
 }
 int end_drawing()
 {
