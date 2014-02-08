@@ -21,6 +21,7 @@ int init_drawing()
     init_pair(3, COLOR_BLACK,COLOR_WHITE);
     init_pair(4, COLOR_WHITE,COLOR_BLACK);
     init_pair(5, COLOR_RED, COLOR_CYAN);
+    init_pair(6, COLOR_WHITE, COLOR_CYAN);
     return 0;
 }
 int draw_table(int x,int y)
@@ -66,9 +67,9 @@ int draw_cursor_a(int x, int y)
     refresh();
     return 0;
 }
-int draw_cursor_b(int x, int y)
+int draw_cursor_b(int x, int y,int color)
 {
-    attron(COLOR_PAIR(4));
+    attron(COLOR_PAIR(color));
     int i=0;
     move(y,x);
     addstr("+-------+");
@@ -80,7 +81,7 @@ int draw_cursor_b(int x, int y)
     move(6+y,x);
     addstr("+-------+");
     move(0,0);
-    attroff(COLOR_PAIR(4));
+    attroff(COLOR_PAIR(color));
     refresh();
     return 0;
 }
@@ -170,7 +171,8 @@ int redraw(struct state_t *state)
 {
     clear();
     draw_table(winx,winy);
-    draw_cursor_b(winx+1+10*state->x,winy+1+6*state->y);
+    draw_cursor_b(winx+1+10*state->x,winy+1+6*state->y,4);
+    draw_cursor_b(winx+44-(44+12)*(state->selection/5)-1,winy+6*(state->selection%5)-1,6);
     int i,j;
     for (i=0;i<4;i++)
     {

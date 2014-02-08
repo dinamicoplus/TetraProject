@@ -23,6 +23,8 @@ int initgame(struct state_t *state)
 {
 	state->x=0;
     state->y=0;
+	state->turn=rand()%2;
+	state->selection=5*state->turn;
     int i,j;
     for(i=0;i<4;i++)
     {
@@ -49,7 +51,6 @@ int initgame(struct state_t *state)
 int manage(struct state_t *state)
 {
     int key = getch();
-    int i=0;
     while(key!=0x1B)
     {
 		switch (key) {
@@ -57,18 +58,35 @@ int manage(struct state_t *state)
 			case KEY_LEFT: state->x=(state->x+3)%4; break;
 			case KEY_DOWN: state->y=(state->y+1)%4; break;
 			case KEY_UP: state->y=(state->y+3)%4; break;
-			case KEY_V: i=(i+1)%10; break;
-			case KEY_C: if(insertcard(state, i/5, i%5)) {redraw(state); game(state,state->x,state->y);} break;
+			case KEY_V: selection(state); break;
+			case KEY_C:
+				if(insertcard(state, state->selection/5, state->selection%5))
+				{
+					redraw(state); if(game(state,state->x,state->y)>1) getch();
+					if (state->turn==0)
+					{
+						state->turn=1; state->selection=9; selection(state);
+					}
+					else
+					{
+						state->turn=0; state->selection=4; selection(state);
+					}
+				} break;
 		}
 		redraw(state);
-		move(30,10);
-		printw("Carta: %d, %d\n", i/5, i%5);
+		move(31,10);
+		//printw("Carta: %d, %d\n", state->selection/5, state->selection%5);
 		printw("Presiona C para insertar carta, V para cambiar de carta\n");
 		key = getch();
 		
     }
 	// printw("%X",key);
     return 0;
+}
+int selection(struct state_t *state)
+{
+	do state->selection=(state->selection+1)%5+5*state->turn; while (state->cards[state->selection/5][state->selection%5].played==1);
+	return state->selection;
 }
 int insertcard(struct state_t *state,int eq,int num)
 {
@@ -110,7 +128,9 @@ int game(struct state_t *state,int x,int y)
 {
 	int eq,num;
 	tbtocard (state, &eq, &num, x, y);
+	int eq_old=eq;
 	int i,j,k;
+	int r=0;
 	for(i=0;i<8;i++) // Comprueba si hay cartas enemigas a su alrededor
 	{
 		if(((state->cards[eq][num].arrows&1<<i)>>i) & itojkxy(i, &j, &k, x, y)) //Comprueba cada flecha que tiene la carta y si la casilla adyacente es una casilla jugable
@@ -129,43 +149,43 @@ int game(struct state_t *state,int x,int y)
 				
 				if (state->cards[eq][num].eq!=state->cards[eq_en][num_en].eq) //Continua evaluando si son de diferentes equipos
 				{
+					//int eq_old=eq;
 					for(l=0;l<8;l++) //comprueba si hay flechas que apunten de la defensora a la carta de ataque
 					{
-						if(((state->cards[eq_en][num_en].arrows&1<<l)>>l) & itojk(l, &m, &n)) //Va comprobando que tiene cada flecha (itoxy es siempre	1)
+						if (eq==eq_old)
 						{
-							if(j+m==0 & k+n==0)	//Comprueba si las flechas son opuestas y coincidentes
+
+							if(((state->cards[eq_en][num_en].arrows&1<<l)>>l) & itojk(l, &m, &n)) //Va comprobando que tiene cada flecha (itoxy es siempre	1)
 							{
-								a++;
-								redraw(state);
-								draw_arrows(i, winx+2+10*x, winy+2+6*y);
-								int resul=battle(state, eq, num, eq_en, num_en);
-								move(21,10);
+								if(j+m==0 & k+n==0)	//Comprueba si las flechas son opuestas y coincidentes
+								{
+									a++;
+									redraw(state);
+									draw_arrows(i, winx+2+10*x, winy+2+6*y);
+									int resul=battle(state, eq, num, eq_en, num_en);
+									move(21,10);
 								
-								if (resul==1) {		//Puede que haya que hacer una función aparte para ganar o perder
-									state->cards[eq_en][num_en].eq=state->cards[eq][num].eq;
-									printw("Has ganaaaaooo!!! ");
+									if (resul==1) {		//Puede que haya que hacer una función aparte para ganar o perder
+										state->cards[eq_en][num_en].eq=state->cards[eq][num].eq; r=2;
+									}
+									else if (resul==0) {
+										state->cards[eq][num].eq=state->cards[eq_en][num_en].eq; r=3;
+									}
+									else if (resul==-1) {
+										printw("Error!!"); r=-1;
+									}
 								}
-								else if (resul==0) {
-									state->cards[eq][num].eq=state->cards[eq_en][num_en].eq;
-									printw("Has perdido... ");
-								}
-								else if (resul==-1) {
-									printw("¡Error! ");
-								}
-								getch();
+							}
+							if (a==0) {	//En caso de no tener flechas con las que defenderse, la carta se gana automáticamente.
+								state->cards[eq_en][num_en].eq=state->cards[eq][num].eq; r=1;
 							}
 						}
-					}
-					if (a==0) {	//En caso de no tener flechas con las que defenderse, la carta se gana automáticamente.
-						state->cards[eq_en][num_en].eq=state->cards[eq][num].eq;
-						printw("Has ganaaaaooo!!! ");
-						getch();
 					}
 				}
 			}
 		}
 	}
-	return 0;
+	return r;
 }
 int battle(struct state_t *state,int eq,int num,int eq_en,int num_en)
 {
