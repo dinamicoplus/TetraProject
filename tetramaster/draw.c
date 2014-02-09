@@ -136,10 +136,11 @@ int draw_arrows(int i,int x, int y, int color)
 int redraw(struct state_t *state)
 {
 	
-	if (state->phase==SELECTION)
+	if (state->phase==SELECTION_P)
 	{
 		clear();
 		draw_table(winx,winy);
+		
 		draw_cursor_b(winx+1+10*state->x,winy+1+6*state->y,4);
 		draw_cursor_b(winx+44-(44+12)*(state->selection/5)-1,winy+6*(state->selection%5)-1,6);
 		int i,j;
@@ -163,12 +164,13 @@ int redraw(struct state_t *state)
 			if(state->cards[1][i].played==0) {draw_card(&state->cards[1][i],winx-12,winy+6*i);}
 		}
 	}
-	if (state->phase==BATTLE)
+	if (state->phase==BATTLE_P)
 	{
-		draw_arrows(state->game.a_arr, winx+2+10*state->game.x, winy+2+6*state->game.y, 5);
+		draw_card(state->battle.att,winx+2+10*state->battle.att->x,winy+2+6*state->battle.att->y);
+		draw_arrows(state->evaluation.a_arr, winx+2+10*state->battle.att->x, winy+2+6*state->battle.att->y, 5);
 		move(20,10);
 		printw("Batalla ");
-		switch (state->battle.cards[0].type) {
+		switch (state->battle.att->type) {
 			case P:
 				printw("física: ");
 				break;
@@ -185,14 +187,22 @@ int redraw(struct state_t *state)
 				break;
 		}
 		printw("%X ",state->battle.param_att);
-		if (state->battle.resul==1) {
+		if (state->battle.resul==WIN) {
 			printw("es mayor que ");
-		} else {
+		} else if (state->battle.resul==LOSE){
 			printw("es menor que ");
 		}
 		printw("%X",state->battle.param_def);
 		getch();
-		draw_card(&state->cards[0][state->table[state->game.x][state->game.y]-2],winx+2+10*state->game.x, winy+2+6*state->game.y);
+	}
+	if (state->phase==COMBI_P)
+	{
+		if(state->battle.combi>0)
+		{
+			move(21,10);
+			printw("COMBI %d !!!",state->battle.combi);
+			getch();
+		}
 	}
 	refresh();
 	return 0;

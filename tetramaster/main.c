@@ -25,7 +25,7 @@ int initgame(struct state_t *state)
     state->y=0;
 	state->turn=rand()%2;
 	state->selection=5*state->turn;
-	state->phase=SELECTION;
+	state->phase=SELECTION_P;
     int i,j;
     for(i=0;i<4;i++)
     {
@@ -49,6 +49,7 @@ int initgame(struct state_t *state)
     }
 	return 0;
 }
+
 int manage(struct state_t *state)
 {
     int key = getch();
@@ -60,30 +61,69 @@ int manage(struct state_t *state)
 			case KEY_DOWN: state->y=(state->y+1)%4; break;
 			case KEY_UP: state->y=(state->y+3)%4; break;
 			case KEY_V: selection(state); break;
-			case KEY_C:
-				if(insertcard(state, state->selection/5, state->selection%5))
-				{
-					redraw(state); game(state,state->x,state->y);
-					if (state->turn==0)
-					{
-						state->turn=1; state->selection=9; selection(state);
-					}
-					else
-					{
-						state->turn=0; state->selection=4; selection(state);
-					}
-				} break;
+			case KEY_C: game(state, state->x, state->y); break;
 		}
-		printw("Presiona C para insertar carta, V para cambiar de carta\n");
 		redraw(state);
-		move(31,10);
-		//printw("Carta: %d, %d\n", state->selection/5, state->selection%5);
+		//move(31,10);
 		key = getch();
 		
     }
 	// printw("%X",key);
     return 0;
 }
+
+int game(struct state_t *state,int x, int y)
+{
+	state->phase=GAME_P;
+	int i=0;
+	if(insertcard(state, state->selection/5, state->selection%5))
+	{
+		redraw(state);
+		for(i=0;i<8;i++)
+		{
+			switch(evaluation(state,state->x,state->y,i)){
+				case BATTLE:
+					state->phase=BATTLE_P;
+					switch(state->battle.resul=battle(state, state->battle.att, state->battle.def)){
+						case WIN:
+							redraw(state);
+							state->battle.def->eq=state->battle.att->eq;
+							
+							state->phase=COMBI_P;
+							combi(state, state->battle.def);
+							redraw(state);
+							break;
+						case LOSE:
+							redraw(state);
+							state->battle.att->eq=state->battle.def->eq;
+							
+							state->phase=COMBI_P;
+							combi(state, state->battle.att);
+							redraw(state);
+							break;
+					}
+					state->phase=GAME_P;
+					break;
+				case AUTOWIN:
+					autowin(state, state->battle.att, state->battle.def);
+					break;
+				case NONE:
+					break;
+			}
+		}
+		if (state->turn==0)
+		{
+			state->turn=1; state->selection=9; selection(state);
+		}
+		else
+		{
+			state->turn=0; state->selection=4; selection(state);
+		}
+	}
+	state->phase=SELECTION_P;
+	return 0;
+}
+
 int selection(struct state_t *state)
 {
 	do state->selection=(state->selection+1)%5+5*state->turn; while (state->cards[state->selection/5][state->selection%5].played==1);
@@ -95,6 +135,8 @@ int insertcard(struct state_t *state,int eq,int num)
 	{
 		state->table[state->x][state->y]=num+2+5*eq; //dos estados para vacios
 		state->cards[eq][num].played=1;
+		state->cards[eq][num].x=state->x;
+		state->cards[eq][num].y=state->y;
 		return 1;
 	}
 	return 0;
@@ -125,128 +167,141 @@ int tbtocard (struct state_t *state, int *eq, int *num, int x, int y)
 	return 0;
 }
 
-struct game_t game(struct state_t *state,int x,int y)
+enum evaluation_e evaluation(struct state_t *state,int x, int y,int i)
 {
-	enum phase_t phase_old=state->phase;
-	state->phase=GAME;
 	int eq,num;
 	tbtocard (state, &eq, &num, x, y);
 	int eq_old=eq;
-	int i,j,k;
-	int r=0;
-	for(i=0;i<8;i++)
+	int j,k;
 	// Comprueba si hay cartas enemigas a su alrededor
+	state->evaluation.a_arr=i;
+	if(((state->cards[eq][num].arrows&1<<i)>>i) & itojkxy(i, &j, &k, x, y))
+	//Comprueba cada flecha que tiene la carta y si la casilla adyacente es una casilla jugable
 	{
-		state->game.a_arr=i;
-		if(((state->cards[eq][num].arrows&1<<i)>>i) & itojkxy(i, &j, &k, x, y))
-		//Comprueba cada flecha que tiene la carta y si la casilla adyacente es una casilla jugable
+		if (state->table[x+j][y+k]>1)
+		//La pongo aquí no vaya a ser que vaya a intentar evaluarla para valores mas grandes de 4 o mas chicos que 0. Comprueba que en la posición adyacente hay una carta.
 		{
-			if (state->table[x+j][y+k]>1)
-			//La pongo aquí no vaya a ser que vaya a intentar evaluarla para valores mas grandes de 4 o mas chicos que 0. Comprueba que en la posición adyacente hay una carta.
+			int eq_en, num_en, l, m, n;
+			int a=0;
+			tbtocard(state, &eq_en, &num_en, x+j, y+k);
+			
+			if (state->cards[eq][num].eq!=state->cards[eq_en][num_en].eq)
+			//Continua evaluando si son de diferentes equipos
 			{
-				int eq_en, num_en, l, m, n;
-				int a=0;
-				tbtocard(state, &eq_en, &num_en, x+j, y+k);
-				
-				if (state->cards[eq][num].eq!=state->cards[eq_en][num_en].eq)
-				//Continua evaluando si son de diferentes equipos
+				if (eq==eq_old)
+				//Comprueba si el atacante sigue siendo del mismo equipo que al principio
 				{
-					state->game.x=x;
-					state->game.y=y;
-					if (eq==eq_old)
-					//Comprueba si el atacante sigue siendo del mismo equipo que al principio
+					state->battle.att=&state->cards[eq][num];
+					state->battle.def=&state->cards[eq_en][num_en];
+					for(l=0;l<8;l++)
+					//comprueba si hay flechas que apunten de la defensora a la carta de ataque
 					{
-						for(l=0;l<8;l++)
-						//comprueba si hay flechas que apunten de la defensora a la carta de ataque
+						state->evaluation.d_arr=l;
+						if(((state->cards[eq_en][num_en].arrows&1<<l)>>l) & itojk(l, &m, &n))
+						//Va comprobando que tiene cada flecha (itoxy es siempre 1)
 						{
-						state->game.d_arr=l;
-							if(((state->cards[eq_en][num_en].arrows&1<<l)>>l) & itojk(l, &m, &n))
-							//Va comprobando que tiene cada flecha (itoxy es siempre 1)
+							if(j+m==0 & k+n==0)
+							//Comprueba si las flechas son opuestas y coincidentes
 							{
-								if(j+m==0 & k+n==0)
-								//Comprueba si las flechas son opuestas y coincidentes
-								{
-									a++;
-									int resul=battle(state, eq, num, eq_en, num_en).resul;
-									if (resul==1)
-									//Puede que haya que hacer una función aparte para ganar o perder
-									{
-										state->cards[eq_en][num_en].eq=state->cards[eq][num].eq; r=2;
-									}
-									else if (resul==0) {
-										state->cards[eq][num].eq=state->cards[eq_en][num_en].eq; r=3;
-									}
-									else if (resul==-1) {
-										printf("Error!!"); r=-1;
-									}
-								}
+								a++;
+								return BATTLE;
 							}
 						}
-						if (a==0)
-						//En caso de no tener flechas con las que defenderse, la carta se gana automáticamente.
-						{
-							state->cards[eq_en][num_en].eq=state->cards[eq][num].eq; r=1;
-						}
+					}
+					if (a==0)
+					//En caso de no tener flechas con las que defenderse, la carta se gana automáticamente.
+					{
+						return AUTOWIN;
 					}
 				}
 			}
 		}
 	}
-	state->game.resul=r;
-	state->phase=phase_old;
-	return state->game;
+	return NONE;
 }
-struct battle_t battle(struct state_t *state,int eq,int num,int eq_en,int num_en)
+
+void autowin(struct state_t *state, struct card_t *att, struct card_t *def)
 {
-	enum phase_t phase_old=state->phase;
-	state->phase=BATTLE;
-	struct card_t att,def;
-	att=state->cards[eq][num];
-	def=state->cards[eq_en][num_en];
+	def->eq=att->eq;
+}
+
+
+enum battle_e battle(struct state_t *state,struct card_t *att, struct card_t *def)
+{
 	
-	state->battle.cards[0]=att;
-	state->battle.cards[1]=def;
-	state->battle.type=att.type;
-	state->battle.param_att=att.stats[0];
+	/*struct card_t att,def;
+	att=state->cards[eq][num];
+	def=state->cards[eq_en][num_en];*/
+	
+	state->battle.att=att;
+	state->battle.def=def;
+	state->battle.type=att->type;
+	state->battle.param_att=att->stats[0];
 	/*move(20,0);
-	printw("Param: %X %X %X %X, EQ: %x",att.stats[0],att.type,att.stats[1],att.stats[2],att.eq);
+	printw("Param: %X %X %X %X, EQ: %x",att->stats[0],att->type,att->stats[1],att->stats[2],att->eq);
 	move(21,0);
-	printw("Param: %X %X %X %X, EQ: %x",def.stats[0],def.type,def.stats[1],def.stats[2],def.eq);*/
-	switch (att.type) {
+	printw("Param: %X %X %X %X, EQ: %x",def->stats[0],def->type,def->stats[1],def->stats[2],def->eq);*/
+	switch (att->type) {
 		case P:
-			state->battle.param_def=def.stats[1];
-			if (att.stats[0]>def.stats[1]) {
-				state->battle.resul=1; return state->battle;
+			state->battle.param_def=def->stats[1];
+			if (att->stats[0]>def->stats[1]) {
+				return WIN;
 			}
 			break;
 		case M:
-			state->battle.param_def=def.stats[2];
-			if (att.stats[0]>def.stats[2]) {
-				state->battle.resul=1; return state->battle;
+			state->battle.param_def=def->stats[2];
+			if (att->stats[0]>def->stats[2]) {
+				return WIN;
 			}
 			break;
 		case X:
-			state->battle.param_def=min(def.stats[1], def.stats[2]);
-			if (att.stats[0]>min(def.stats[1], def.stats[2])) {
-				state->battle.resul=1; return state->battle;
+			state->battle.param_def=min(def->stats[1], def->stats[2]);
+			if (att->stats[0]>min(def->stats[1], def->stats[2])) {
+				return WIN;
 			}
 			break;
 		case A:
-			state->battle.param_def=min(min(def.stats[0],def.stats[1]),def.stats[2]);
-			if (att.stats[0]>min(min(def.stats[0], def.stats[1]), def.stats[2])) {
-				state->battle.resul=1; return state->battle;
+			state->battle.param_def=min(min(def->stats[0],def->stats[1]),def->stats[2]);
+			if (att->stats[0]>min(min(def->stats[0], def->stats[1]), def->stats[2])) {
+				return WIN;
 			}
 			break;
 		default:
-			state->battle.resul=-1; return state->battle;
+			return LOSE;
 			break;
 	}
-	state->battle.resul=0;
-	redraw(state);
-	state->phase=phase_old;
-	return state->battle;
+
+	return LOSE;
 }
 
+int combi(struct state_t *state,struct card_t *card)
+{
+	int i,j,k;
+	state->battle.combi=0;
+	for(i=0;i<8;i++)
+	// Comprueba si hay cartas enemigas a su alrededor
+	{
+		//state->game.a_arr=i;
+		if(((card->arrows&1<<i)>>i) & itojkxy(i, &j, &k, card->x, card->y))
+			//Comprueba cada flecha que tiene la carta y si la casilla adyacente es una casilla jugable
+		{
+			if (state->table[card->x+j][card->y+k]>1)
+				//La pongo aquí no vaya a ser que vaya a intentar evaluarla para valores mas grandes de 4 o mas chicos que 0. Comprueba que en la posición adyacente hay una carta.
+			{
+				int eq_en, num_en;
+				tbtocard(state, &eq_en, &num_en, card->x+j, card->y+k);
+				
+				if (card->eq!=state->cards[eq_en][num_en].eq)
+				//Continua evaluando si son el mismo equipo
+				{
+					state->cards[eq_en][num_en].eq=card->eq;
+					state->battle.combi++;
+				}
+			}
+		}
+	}
+	return state->battle.combi;
+}
 int min(int a, int b)
 {
 	if (a>b)
