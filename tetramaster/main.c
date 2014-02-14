@@ -64,11 +64,9 @@ int manage(struct state_t *state)
 			case KEY_C: game(state, state->x, state->y); break;
 		}
 		redraw(state);
-		//move(31,10);
 		key = getch();
 		
     }
-	// printw("%X",key);
     return 0;
 }
 
@@ -111,13 +109,13 @@ int game(struct state_t *state,int x, int y)
 					break;
 			}
 		}
-		if (state->turn==0)
+		if (state->turn%2==0)
 		{
-			state->turn=1; state->selection=9; selection(state);
+			state->turn++; state->selection=9; selection(state);
 		}
 		else
 		{
-			state->turn=0; state->selection=4; selection(state);
+			state->turn++; state->selection=4; selection(state);
 		}
 	}
 	state->phase=SELECTION_P;
@@ -126,7 +124,9 @@ int game(struct state_t *state,int x, int y)
 
 int selection(struct state_t *state)
 {
-	do state->selection=(state->selection+1)%5+5*state->turn; while (state->cards[state->selection/5][state->selection%5].played==1);
+	do state->selection=(state->selection+1)%5+5*(state->turn%2);
+	while (state->cards[state->selection/5][state->selection%5].played==1
+		   &state->turn<11);
 	return state->selection;
 }
 int insertcard(struct state_t *state,int eq,int num)
