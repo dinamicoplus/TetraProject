@@ -5,9 +5,11 @@
  **************************************************************************************/
 #include "main.h"
 
+int min(int a, int b);
+
 int main()
 {
-    init_drawing();
+	init_drawing();
     srand((int)time(NULL));
     winx=(COLS)/2-21;
 	winy=1;
