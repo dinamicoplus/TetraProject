@@ -1,3 +1,3 @@
 all:
 	mkdir -p bin
-	gcc -o bin/test main.c draw.c -lncurses
+	gcc -o bin/tetramaster main.c draw.c -lncurses
